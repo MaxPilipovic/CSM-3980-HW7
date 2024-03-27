@@ -54,10 +54,10 @@ int main(int argc, char *argv[]) {
 
     //READ A
     //wtf?
-    readMultiply(argv[1], A, &rowA, &columnA);
+    readMultiply(argv[1], &A, &rowA, &columnA);
 
     //READ B
-    readMultiply(argv[2], B, &rowB, &columnB);
+    readMultiply(argv[2], &B, &rowB, &columnB);
 
     //ALLOCATE MEMORY
     C = (float**)malloc(rowA * sizeof(float*));
