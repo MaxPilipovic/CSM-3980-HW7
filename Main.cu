@@ -6,9 +6,9 @@ void readMultiply(char* filename, float **matrix, int *row, int *column) {
     FILE* read = fopen(filename, "r");
     if(read != NULL) {
         fscanf(read, "%d %d", row, column);
-        *matrix = (float**)malloc(*row * sizeof(float*));
+        **matrix = (float**)malloc(*row * sizeof(float*));
         for (int i = 0; i < *row; i++) {
-            (*matrix)[i] = (float*)malloc(*column * sizeof(float));
+            (*matrix)[i] = (float**)malloc(*column * sizeof(float));
             for (int j = 0; j < *column; j++) {
                 fscanf(read, "%f", &((*matrix)[i][j]));
             }
