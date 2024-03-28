@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
         fprintf(write, "%d %d\n", rowA, columnB);
         for (int i = 0; i < rowA; i++) {
             for (int j = 0; j < columnB; j++) {
-                fprintf(write, "%f", C[i][j]);
+                fprintf(write, "%f ", C[i][j]);
             }
             fprintf(write, "\n");
         }
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
     }
     free(B);
 
-    for (int e = 0; e < rowB; e++) {
+    for (int e = 0; e < rowA; e++) {
         free(C[e]);
     }
     free(C);
