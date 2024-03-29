@@ -34,28 +34,28 @@ __global__ void matrixmultiply_kernel(float* A, float* B, float* C, unsigned int
 }
 }
 
-void matrixMultiply(int* a, int* b, int* c, int N) {
+void matrixMultiply(float* a, float* b, float* c, int N) {
     //Allocate GPU memory
     int *a_d, *b_d, *c_d;
 
-    cudaMalloc((void**) &a_d, N*N*sizeof(int));
-    cudaMalloc((void**) &b_d, N*N*sizeof(int));
-    cudaMalloc((void**) &c_d, N*N*sizeof(int));
+    cudaMalloc((void**) &a_d, N*N*sizeof(float));
+    cudaMalloc((void**) &b_d, N*N*sizeof(float));
+    cudaMalloc((void**) &c_d, N*N*sizeof(float));
 
     //Copy data to GPU memory
-    cudaMemcpy(a_d, a, N*N*sizeof(int), cudaMemcpyHostToDevice);
-    cudaMemcpy(b_d, y, N*N*sizeof(int), cudaMemcpyHostToDevice);
+    cudaMemcpy(a_d, a, N*N*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(b_d, y, N*N*sizeof(float), cudaMemcpyHostToDevice);
 
     //Perform computation on GPU
-    int numThreadsPerBlock = (16, 16);
-    int numBlocks = ((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
+    dim3 numThreadsPerBlock = (16, 16);
+    dim3 numBlocks = ((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
     matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>();
 
     //Synchronize
     cudaDeviceSynchronize();
 
     //Copy data from GPU memory
-    cudaMemcpy(c, c_d, N*N*sizeof(int), cudaMemcpyDeviceToHost);
+    cudaMemcpy(c, c_d, N*N*sizeof(float), cudaMemcpyDeviceToHost);
 
     //Deallocate GPU memory
     cudaFree(a_d);
@@ -69,9 +69,9 @@ int main() {
         return 1;
     }
 
-    float **A;
-    float **B;
-    float **C;
+    float *A;
+    float *B;
+    float *C;
     //int rowA;
     //int columnA;
     //int rowB;
@@ -86,10 +86,8 @@ int main() {
     readMultiply(argv[2], &B, &N);
 
     //ALLOCATE MEMORY
-    C = (float**)malloc(rowA * sizeof(float*));
-    for (int z = 0; z < rowA; z++) {
-        C[z] = (float*)malloc(columnB * sizeof(float));
-    }
+    C = (float**)malloc(N*N*sizeof(float*));
+
 
     //PERFORM MATRIX MULTIPLICATION
     matrixMultiply(A, B, C, N);
@@ -111,19 +109,9 @@ int main() {
     }
 
     //FREE ALLOCATED MEMORY
-    for (int q = 0; q < rowA; q++) {
-        free(A[q]);
-    }
+
     free(A);
-
-    for (int x = 0; x < rowB; x++) {
-        free(B[x]);
-    }
     free(B);
-
-    for (int e = 0; e < rowA; e++) {
-        free(C[e]);
-    }
     free(C);
 
     return 0;
