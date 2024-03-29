@@ -91,7 +91,7 @@ int main() {
 
 
     //PERFORM MATRIX MULTIPLICATION
-    matrixMultiply(A, B, C, N);
+    matrixMultiply(float *A, float *B, float *C, int N);
 
     //WRITE TO MATRIX C
     FILE* write = fopen(argv[3], "w");
