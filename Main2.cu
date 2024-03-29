@@ -7,13 +7,14 @@ void readMultiply(char* filename, float ***matrix, int *N) {
     if(read != NULL) {
         int row;
         int column;
-        fscanf(read, "%d %d", row, column);
+        fscanf(read, "%d %d", &row, &column);
         //Ask about this
         *N = row;
-        *matrix = (float**)malloc(row * column * sizeof(float));
+
+        *matrix = (float*)malloc(row * column * sizeof(float));
+
         for (int i = 0; i < row * column; i++) {
-            (*matrix)[i] = (float*)malloc(*column * sizeof(float));
-            fscanf(read, "%f", &((*matrix)[i]);
+            fscanf(read, "%f", &((*matrix)[i]));
         }
         fclose(read);
     } else {
@@ -49,7 +50,7 @@ void matrixMultiply(float* a, float* b, float* c, int N) {
     //Perform computation on GPU
     dim3 numThreadsPerBlock = (16, 16);
     dim3 numBlocks = ((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
-    matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>();
+    matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>(a_d, b_d, c_d, N);
 
     //Synchronize
     cudaDeviceSynchronize();
