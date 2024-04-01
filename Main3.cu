@@ -1,18 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#define TILE_DIM 16
+#define COARSE_FACTOR 1
 
-__global__ void matrixmultiply_kernel(float* A, float* B, float* C, unsigned int N) {
-    unsigned int row = blockIdx.y*blockDim.y + threadIdx.y;
-    unsigned int col = blockIdx.x*blockDim.x + threadIdx.x;
-
-    if (row < N && col < N) {
-        float sum = 0.0f;
-        for(unsigned int i = 0; i < N; ++i) {
-            sum += A[row*N + i]*B[i*N + col];
-        }
-        C[row*N + col] = sum;
+__global__ void tiled_matrixmultiply_kernel(float* A, float* B, float* C, unsigned int N, unsigned int M, unsigned int K) {
+    __shared__ float A_s[TILE_DIM][TILE_DIM];
+    __shared__ float B_s[TILE_DIM][TILE_DIM];
+    unsigned int row = blockIdx.y * blockDim.y + threadIdx.y;
+    unsigned int colStart = blockIdx.x * blockDim.x * COARSE_FACTOR + threadIdx.x;
+    float sum[COARSE_FACTOR];
+    for (unsigned int c = 0; c < COARSE_FACTOR; c++) {
+        sum[c] = 0.0f;
     }
+    for (unsigned int tile = 0; tile < N/TILE_DIM; tile++) {
+        //Load A tile
+        A_s[threadIdx.y][threadIdx.x] = A[row*N + tile*TILE_DIM + threadIdx.x];
+        for (unsigned int c = 0; c < COARSE_FACTOR; c++) {
+            unsigned int col = colStart + c*TILE_DIM;
+            //Load B tile
+            B_s[threadIdx.y][threadIdx.x] = B[(tile*TILE_DIM + threadIdx.y)*N + col];
+            __syncthreads();
+            //Compute with tile
+            for (unsigned int i = 0; i < TILE_DIM; i++) {
+                sum[c] += A_s[threadIdx.y][i]*B_s[i][threadIdx.x];
+            }
+            __syncthreads();
+        }
+    }
+    for (unsigned int c = 0; c < COARSE_FACTOR; c++) {
+        unsigned int col = colStart + c*TILE_DIM;
+        C[row*N + col] = sum[c];
+    }    
 }
 
 void matrixMultiply(float* a, float* b, float* c, int N) {
@@ -29,9 +48,11 @@ void matrixMultiply(float* a, float* b, float* c, int N) {
     cudaMemcpy(b_d, b, N*N*sizeof(float), cudaMemcpyHostToDevice);
 
     //Perform computation on GPU
+    int M = N;
+    int K = N;
     dim3 numThreadsPerBlock(16, 16);
-    dim3 numBlocks((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
-    matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>(a_d, b_d, c_d, N);
+    dim3 numBlocks((N + TILE_DIM - 1)/TILE_DIM/COARSE_FACTOR, (N + TILE_DIM - 1)/TILE_DIM);
+    tiled_matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>(a_d, b_d, c_d, N, M, K);
 
     //Synchronize
     cudaDeviceSynchronize();
