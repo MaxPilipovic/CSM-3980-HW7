@@ -29,8 +29,8 @@ void matrixMultiply(float* a, float* b, float* c, int N) {
     cudaMemcpy(b_d, b, N*N*sizeof(float), cudaMemcpyHostToDevice);
 
     //Perform computation on GPU
-    int numThreadsPerBlock = (16, 16);
-    int numBlocks = ((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
+    dim3 numThreadsPerBlock(16, 16);
+    dim3 numBlocks((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
     matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>(a_d, b_d, c_d, N);
 
     //Synchronize
