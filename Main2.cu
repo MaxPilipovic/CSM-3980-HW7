@@ -2,7 +2,50 @@
 #include <stdlib.h>
 #include <time.h>
 
-void readMultiply(char* filename, float ***matrix, int *N) {
+__global__ void matrixmultiply_kernel(float* A, float* B, float* C, unsigned int N) {
+    unsigned int row = blockIdx.y*blockDim.y + threadIdx.y;
+    unsigned int col = blockIdx.x*blockDim.x + threadIdx.x;
+
+    if (row < N && col < N) {
+        float sum = 0.0f;
+        for(unsigned int i = 0; i < N; ++i) {
+            sum += A[row*N + i]*B[i*N + col];
+        }
+        C[row*N + col] = sum;
+    }
+}
+
+void matrixMultiply(float* a, float* b, float* c, int N) {
+
+    //Allocate GPU memory
+    float *a_d, *b_d, *c_d;
+
+    cudaMalloc((void**) &a_d, N*N*sizeof(float));
+    cudaMalloc((void**) &b_d, N*N*sizeof(float));
+    cudaMalloc((void**) &c_d, N*N*sizeof(float));
+
+    //Copy data to GPU memory
+    cudaMemcpy(a_d, a, N*N*sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(b_d, b, N*N*sizeof(float), cudaMemcpyHostToDevice);
+
+    //Perform computation on GPU
+    dim3 numThreadsPerBlock = (16, 16);
+    dim3 numBlocks = ((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
+    matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>(a_d, b_d, c_d, N);
+
+    //Synchronize
+    cudaDeviceSynchronize();
+
+    //Copy data from GPU memory
+    cudaMemcpy(c, c_d, N*N*sizeof(float), cudaMemcpyDeviceToHost);
+
+    //Deallocate GPU memory
+    cudaFree(a_d);
+    cudaFree(b_d);
+    cudaFree(c_d);
+}
+
+void readMultiply(char* filename, float **matrix, int *N) {
     FILE* read = fopen(filename, "r");
     if(read != NULL) {
         int row;
@@ -21,47 +64,6 @@ void readMultiply(char* filename, float ***matrix, int *N) {
         printf("Nothing in file");
         exit(1);
     }
-}
-
-__global__ void matrixmultiply_kernel(float* A, float* B, float* C, unsigned int N) {
-    unsigned int row = blockIdx.y*blockDim.y + threadIdx.y;
-    unsigned int col = blockIdx.x*blockDim.x + threadIdx.x;
-
-    float sum = 0.0f;
-    for(unsigned int i = 0; i < N; ++i) {
-        sum += A[row*N + i]*B[i*N + col];
-    }
-    C[row*N + col] = sum;
-}
-}
-
-void matrixMultiply(float* a, float* b, float* c, int N) {
-    //Allocate GPU memory
-    int *a_d, *b_d, *c_d;
-
-    cudaMalloc((void**) &a_d, N*N*sizeof(float));
-    cudaMalloc((void**) &b_d, N*N*sizeof(float));
-    cudaMalloc((void**) &c_d, N*N*sizeof(float));
-
-    //Copy data to GPU memory
-    cudaMemcpy(a_d, a, N*N*sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(b_d, y, N*N*sizeof(float), cudaMemcpyHostToDevice);
-
-    //Perform computation on GPU
-    dim3 numThreadsPerBlock = (16, 16);
-    dim3 numBlocks = ((N + numThreadsPerBlock.x - 1) / numThreadsPerBlock.x, (N + numThreadsPerBlock.y - 1) / numThreadsPerBlock.y);
-    matrixmultiply_kernel<<<numBlocks, numThreadsPerBlock>>>(a_d, b_d, c_d, N);
-
-    //Synchronize
-    cudaDeviceSynchronize();
-
-    //Copy data from GPU memory
-    cudaMemcpy(c, c_d, N*N*sizeof(float), cudaMemcpyDeviceToHost);
-
-    //Deallocate GPU memory
-    cudaFree(a_d);
-    cudaFree(b_d);
-    cudaFree(c_d);
 }
 
 int main() {
@@ -87,11 +89,10 @@ int main() {
     readMultiply(argv[2], &B, &N);
 
     //ALLOCATE MEMORY
-    C = (float**)malloc(N*N*sizeof(float*));
-
+    C = (float*)malloc(N*N*sizeof(float));
 
     //PERFORM MATRIX MULTIPLICATION
-    matrixMultiply(float *A, float *B, float *C, int N);
+    matrixMultiply(A, B, C, N);
 
     //WRITE TO MATRIX C
     FILE* write = fopen(argv[3], "w");
