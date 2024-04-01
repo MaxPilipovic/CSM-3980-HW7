@@ -66,7 +66,7 @@ void readMultiply(char* filename, float **matrix, int *N) {
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     if (argc < 4) {
         printf("3 Arguments are required");
         return 1;
