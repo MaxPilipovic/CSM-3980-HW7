@@ -48,11 +48,11 @@ void matrixMultiply(float* a, float* b, float* c, int N) {
     cudaMemcpy(b_d, b, N*N*sizeof(float), cudaMemcpyHostToDevice);
 
     //Start time
+    float time;
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
     cudaEventRecord(start, 0);
-    int time;
 
     //Perform computation on GPU
     int M = N;
@@ -64,12 +64,11 @@ void matrixMultiply(float* a, float* b, float* c, int N) {
     //Synchronize
     cudaDeviceSynchronize();
 
+    //End time
     cudaEventRecord(stop, 0);
     cudaEventSynchronize(stop);
-    (&time, start, stop);
+    cudaEventElapsedTime(&time, start, stop);
     printf("%f\n", time);
-    cudaEventDestroy(start);
-    cudaEventDestroy(stop);
 
     //Copy data from GPU memory
     cudaMemcpy(c, c_d, N*N*sizeof(float), cudaMemcpyDeviceToHost);
