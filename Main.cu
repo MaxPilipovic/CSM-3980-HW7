@@ -63,10 +63,10 @@ int main(int argc, char *argv[]) {
     //WRITE TO MATRIX C
     FILE* write = fopen(argv[3], "w");
     if(write != NULL) {
-        fprintf(write, "%d %d\n", rowA, columnB);
+        fprintf(write, "%d %d\n", N, N);
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                fprintf(write, "%f ", C[i * N + j);
+                fprintf(write, "%f ", C[i * N + j]);
             }
             fprintf(write, "\n");
         }
