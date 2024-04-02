@@ -10,7 +10,6 @@ void readMultiply(char* filename, float **matrix, int *N) {
         fscanf(read, "%d %d", &row, &column);
         //Ask about this
         *N = row;
-
         *matrix = (float*)malloc(row * column * sizeof(float));
 
         for (int i = 0; i < row * column; i++) {
