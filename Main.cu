@@ -2,17 +2,19 @@
 #include <stdlib.h>
 #include <time.h>
 
-void readMultiply(char* filename, float ***matrix, int *row, int *column) {
+void readMultiply(char* filename, float **matrix, int *N) {
     FILE* read = fopen(filename, "r");
     if(read != NULL) {
-        fscanf(read, "%d %d", row, column);
+        int row;
+        int column;
+        fscanf(read, "%d %d", &row, &column);
         //Ask about this
-        *matrix = (float**)malloc(*row * sizeof(float*));
-        for (int i = 0; i < *row; i++) {
-            (*matrix)[i] = (float*)malloc(*column * sizeof(float));
-            for (int j = 0; j < *column; j++) {
-                fscanf(read, "%f", &((*matrix)[i][j]));
-            }
+        *N = row;
+
+        *matrix = (float*)malloc(row * column * sizeof(float));
+
+        for (int i = 0; i < row * column; i++) {
+            fscanf(read, "%f", &((*matrix)[i]));
         }
         fclose(read);
     } else {
@@ -21,21 +23,16 @@ void readMultiply(char* filename, float ***matrix, int *row, int *column) {
     }
 }
 
-void matrixMultiply(float **A, float **B, float **C, int rowA, int columnA, int rowB, int columnB) {
-    if (columnA != rowB) {
-        printf("Dimensions not going to work");
-        exit(1);
-    }
-
-    for (int i = 0; i < rowA; i++) {
-        for (int j = 0; j < columnB; j++) {
-            C[i][j] = 0; //start with 0
-            for (int n = 0; n < rowB; n++) {
-                C[i][j] += A[i][n] * B[n][j];
+void matrixMultiply(float *A, float *B, float *C, unsigned int N) {
+    for (unsigned int row = 0; row < N; row++) {
+        for (unsigned int col = 0; col < N; col++) {
+            float sum = 0.0f;
+            for (unsigned int i = 0; i < N; i++) {
+                sum += A[row * N + i] * B[i * N + col];
             }
+            C[row * N + col] = sum;
         }
     }
-
 }
 
 int main(int argc, char *argv[]) {
@@ -44,37 +41,32 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    float **A;
-    float **B;
-    float **C;
-    int rowA;
-    int columnA;
-    int rowB;
-    int columnB;
+    float *A;
+    float *B;
+    float *C;
+    int N;
 
     //READ A
     //wtf?
-    readMultiply(argv[1], &A, &rowA, &columnA);
+    readMultiply(argv[1], &A, &N);
 
     //READ B
-    readMultiply(argv[2], &B, &rowB, &columnB);
+    readMultiply(argv[2], &B, &N);
 
     //ALLOCATE MEMORY
-    C = (float**)malloc(rowA * sizeof(float*));
-    for (int z = 0; z < rowA; z++) {
-        C[z] = (float*)malloc(columnB * sizeof(float));
-    }
+    C = (float*)malloc(N*N*sizeof(float));
+
 
     //PERFORM MATRIX MULTIPLICATION
-    matrixMultiply(A, B, C, rowA, columnA, rowB, columnB);
+    matrixMultiply(A, B, C, N);
 
     //WRITE TO MATRIX C
     FILE* write = fopen(argv[3], "w");
     if(write != NULL) {
         fprintf(write, "%d %d\n", rowA, columnB);
-        for (int i = 0; i < rowA; i++) {
-            for (int j = 0; j < columnB; j++) {
-                fprintf(write, "%f ", C[i][j]);
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                fprintf(write, "%f ", C[i * N + j);
             }
             fprintf(write, "\n");
         }
@@ -85,18 +77,7 @@ int main(int argc, char *argv[]) {
     }
     
     //FREE ALLOCATED MEMORY
-    for (int q = 0; q < rowA; q++) {
-        free(A[q]);
-    }
     free(A);
-
-    for (int x = 0; x < rowB; x++) {
-        free(B[x]);
-    }
     free(B);
-
-    for (int e = 0; e < rowA; e++) {
-        free(C[e]);
-    }
     free(C);
 }
