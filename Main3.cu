@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 #define TILE_DIM 16
-#define COARSE_FACTOR 1
+#define COARSE_FACTOR 2
 
 __global__ void tiled_matrixmultiply_kernel(float* A, float* B, float* C, unsigned int N, unsigned int M, unsigned int K) {
     __shared__ float A_s[TILE_DIM][TILE_DIM];
