@@ -55,6 +55,9 @@ int main(int argc, char *argv[]) {
     //ALLOCATE MEMORY
     C = (float*)malloc(N*N*sizeof(float));
 
+    clock_t start_t, end_t;
+    double total_t;
+    start_t = clock();
 
     //PERFORM MATRIX MULTIPLICATION
     matrixMultiply(A, B, C, N);
@@ -74,6 +77,10 @@ int main(int argc, char *argv[]) {
         printf("Nothing in file");
         return 1;
     }
+
+    end_t = clock();
+    total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
+    printf("%f\n", total_t);
     
     //FREE ALLOCATED MEMORY
     free(A);
