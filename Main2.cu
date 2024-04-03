@@ -8,7 +8,7 @@ __global__ void matrixmultiply_kernel(float* A, float* B, float* C, unsigned int
 
     if (row < N && col < N) {
         float sum = 0.0f;
-        for(unsigned int i = 0; i < N; ++i) {
+        for(unsigned int i = 0; i < N; i++) {
             sum += A[row*N + i]*B[i*N + col];
         }
         C[row*N + col] = sum;
