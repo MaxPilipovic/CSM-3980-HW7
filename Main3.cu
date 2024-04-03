@@ -35,7 +35,6 @@ __global__ void tiled_matrixmultiply_kernel(float* A, float* B, float* C, unsign
 }
 
 void matrixMultiply(float* a, float* b, float* c, int N) {
-
     //Allocate GPU memory
     float *a_d, *b_d, *c_d;
 

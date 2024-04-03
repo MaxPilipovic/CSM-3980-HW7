@@ -17,6 +17,7 @@ void readMultiply(char* filename, float **matrix, int *N) {
         }
         fclose(read);
     } else {
+        //print
         printf("Nothing in file");
         exit(1);
     }

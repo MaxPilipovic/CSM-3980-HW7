@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+//need boundary conditions
 
 __global__ void matrixmultiply_kernel(float* A, float* B, float* C, unsigned int N) {
     unsigned int row = blockIdx.y*blockDim.y + threadIdx.y;
@@ -16,7 +17,6 @@ __global__ void matrixmultiply_kernel(float* A, float* B, float* C, unsigned int
 }
 
 void matrixMultiply(float* a, float* b, float* c, int N) {
-
     //Allocate GPU memory
     float *a_d, *b_d, *c_d;
 
