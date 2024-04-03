@@ -124,7 +124,6 @@ int main(int argc, char *argv[]) {
     }
 
     //FREE ALLOCATED MEMORY
-
     free(A);
     free(B);
     free(C);
