@@ -9,6 +9,7 @@ Main2: Main2.cu
 Main3: Main3.cu
 	nvcc Main3.cu
 
+.PHONY: clean
 clean:
 	rm -f Main Main2 Main3
 
